@@ -1,0 +1,14 @@
+version: '3.3'
+
+services:
+  mongo:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+    - 8082:27017
+    volumes:
+      - ./mongo_data:/data/db
+
+      #mongodb://root:root@localhost:8082?retryWrites=true&writeConcern=majority
