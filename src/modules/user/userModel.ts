@@ -1,10 +1,8 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { STUDENT_ROLE } from "../../shared/constants/roles";
 
 export interface UserSchema extends Document {
-  name: string;
+  userName: string;
   email: string;
-  image?: string;
   password: string;
   role: string;
   deleted?: 0 | 1;
@@ -12,9 +10,8 @@ export interface UserSchema extends Document {
 }
 
 const UserSchema = new Schema<UserSchema>({
-  name: { type: String, required: [true, "Name is required"] },
+  userName: { type: String, required: [true, "userName is required"] },
   email: { type: String, required: [true, "Email is required"] },
-  image: { type: String, default: "" },
   password: { type: String, required: [true, "Password is required"] },
   role: { type: String, required: [true, "Role is required"] },
   deleted: { type: Number, default: 0 },

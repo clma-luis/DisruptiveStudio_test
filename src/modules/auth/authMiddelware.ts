@@ -34,12 +34,11 @@ const comparePasswords = async (password: string, passwordHash: string) => {
 };
 
 const userDataAdapter = (user: UserSchema) => {
-  const { _id, image, name, email, role } = user;
+  const { _id, userName, email, role } = user;
 
   const result = {
     id: _id.toString(),
-    image,
-    name,
+    userName,
     email,
     role,
   };
