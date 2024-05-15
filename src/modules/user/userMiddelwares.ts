@@ -7,6 +7,7 @@ import { LETTER_PATTERN, NUMBER_PATTERN, SPECIAL_CHARACTERS_PATTERN } from "../.
 import RoleModel from "../role/roleModel";
 import UserModel from "./userModel";
 import { BAD_REQUEST_STATUS, INTERNAL_SERVER_ERROR_STATUS, NOT_FOUND } from "../../shared/constants/statusHTTP";
+import { ADMIN_ROLE } from "../../shared/constants/roles";
 
 export const validatePasswordData = [
   body("password", "Field password is required and string")
@@ -31,7 +32,8 @@ const validatePasswordConditions = (value: string) => {
   return true;
 };
 
-const validateRoleUser = async (value: string) => {
+const validateRoleUser = async (value: string, avoidRole?: string) => {
+  if (value === avoidRole) throw new Error(`You cannot create a user with the role ${avoidRole}`);
   if (!value) throw new Error("The role is required");
 
   const existModel = await RoleModel.findOne({ role: value });
@@ -132,11 +134,10 @@ const checkPattern = (value: string, pattern: RegExp, errorMessage: string, erro
 };
 
 export const validateUserBody = [
-  body("name", "Field name is required and string").not().isEmpty().isString(),
-  body("image", "Field image is string").optional().isString(),
+  body("userName", "Field userName is required and string").not().isEmpty().isString(),
   body("email", "Field email is required and must be available format").not().isEmpty().isEmail(),
   body("password", "Field password is required and string").custom((value) => validatePasswordConditions(value)),
-  body("role").custom((value) => validateRoleUser(value)),
+  body("role").custom((value) => validateRoleUser(value, ADMIN_ROLE)),
 ];
 
 export const validateDataToUpdate = [

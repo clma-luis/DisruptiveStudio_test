@@ -10,6 +10,7 @@ import authRoutes from "./modules/auth/authRoutes";
 import roleRoutes from "./modules/role/roleRoutes";
 import seedRoutes from "./modules/seeds/seedRoutes";
 import userRoutes from "./modules/user/userRoutes";
+import categoryRoutes from "./modules/category/categoryRoutes";
 
 export class Server {
   private app: express.Application;
@@ -41,6 +42,8 @@ export class Server {
     this.app.use("/api/user", userRoutes);
     this.app.use("/api/role", roleRoutes);
     this.app.use("/api/seed", seedRoutes);
+
+    this.app.use("/api/category", categoryRoutes);
   }
 
   public listen() {

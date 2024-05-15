@@ -1,6 +1,6 @@
 import express from "express";
 
-import { ADMIN_ROLE, PROFESOR_ROLE, STUDENT_ROLE } from "../../shared/constants/roles";
+import { ADMIN_ROLE, LECTOR_ROLE, CREADOR_ROLE } from "../../shared/constants/roles";
 import { validateFields, validateObjectId, validateRole, validateToken } from "../../shared/middlewares/general";
 import { UserController } from "./userController";
 import {
@@ -27,7 +27,7 @@ router.get("/getUser/:id", validateObjectId("id"), validateToken, validateRole([
 router.put(
   "/updateUser",
   validateToken,
-  validateRole([ADMIN_ROLE, PROFESOR_ROLE, STUDENT_ROLE]),
+  validateRole([ADMIN_ROLE, LECTOR_ROLE, CREADOR_ROLE]),
   validateDataToUpdate,
   validateFields,
   updateUser
