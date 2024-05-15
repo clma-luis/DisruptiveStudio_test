@@ -22,7 +22,7 @@ export const validateFields = (req: Request, res: Response, next: NextFunction) 
 
     return res.status(BAD_REQUEST_STATUS).json({ errors: result });
   }
-
+  console.log("pasa aqui?");
   next();
 };
 

@@ -1,20 +1,24 @@
 import { Request, Response } from "express";
 import { categoryService } from "./categoryService";
-import { CREATED_STATUS, OK_STATUS } from "../../shared/constants/statusHTTP";
+import { CREATED_STATUS, INTERNAL_SERVER_ERROR_STATUS, OK_STATUS } from "../../shared/constants/statusHTTP";
 
 export class CategoryController {
   constructor() {}
 
   async createCategory(req: Request, res: Response) {
-    const { name, isAlreadyDeleted, id } = req.body;
-    console.log({ isAlreadyDeleted });
+    try {
+      const { name, isAlreadyDeleted, id } = req.body;
 
-    if (isAlreadyDeleted) {
-      const result = await categoryService.resetCategory(id);
-      res.status(CREATED_STATUS).json({ message: "Category created successfully", result });
-    } else {
-      const result = await categoryService.createCategory(name);
-      res.status(CREATED_STATUS).json({ message: "Category created successfully", result });
+      if (isAlreadyDeleted) {
+        const result = await categoryService.resetCategory(id);
+        res.status(CREATED_STATUS).json({ message: "Category created successfully", result });
+      } else {
+        const result = await categoryService.createCategory(name);
+        res.status(CREATED_STATUS).json({ message: "Category created successfully", result });
+      }
+    } catch (error) {
+      console.log({ error });
+      res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while creating the category" });
     }
   }
 
