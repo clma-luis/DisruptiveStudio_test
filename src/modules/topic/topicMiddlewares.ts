@@ -8,20 +8,24 @@ import CategoryModel, { CategorySchema } from "../category/categoryModel";
 import TopicModel from "./topicModel";
 import { BAD_REQUEST_STATUS } from "../../shared/constants/statusHTTP";
 import { YOUTUBE_PATTERN } from "../../shared/constants/regex";
-import { checkPattern } from "../user/userMiddelwares";
 
 export const validateTopicItems = [
   body("title", "Field name is required and string").custom((_, { req }) => validateIfUniqueTopic(req as Request)),
   body("categories", "Field categories is required and array"),
-  body("videoYoutube", "Field videoYoutube is string").custom((value, { req }) => validateURLYoutube(req as Request)),
+  body("videoYoutube", "Field videoYoutube is string").custom((_, { req }) => validateURLYoutube(req as Request)),
   body("image")
-    .custom((_, { req }) => validateExistFile(req as Request, "image"))
+    /*     .custom((_, { req }) => validateExistFile(req as Request, "image")) */
     .custom((_, { req }) => validateFileExtension(req as Request, "image", IMAGE_EXTENSIONS))
     .custom((_, { req }) => uploadFileInCloudinary(req as Request, "image")),
   body("pdf")
-    .custom((_, { req }) => validateExistFile(req as Request, "pdf"))
+    /*    .custom((_, { req }) => validateExistFile(req as Request, "pdf")) */
     .custom((_, { req }) => validateFileExtension(req as Request, "pdf", DOCUMENT_PDF_EXTENSIONS))
     .custom((_, { req }) => uploadFileInCloudinary(req as Request, "pdf")),
+];
+
+export const validateTipicToUpdate = [
+  body("title", "Field name is required and string").isString().notEmpty(),
+  body("videoYoutube", "Field videoYoutube is string").custom((_, { req }) => validateURLYoutube(req as Request)),
 ];
 
 const validateURLYoutube = (req: Request) => {
@@ -59,6 +63,9 @@ export const validateCategoriesInTopic = async (req: Request, res: Response, nex
   const convertToObjectIds = categoriesArray.map((id: string) => {
     return mongoose.Types.ObjectId.createFromHexString(id);
   });
+
+  console.log(convertToObjectIds);
+
   const result = await validatePermissionsCategory(convertToObjectIds, req as Request);
 
   if (result) {
@@ -90,6 +97,7 @@ const validatePermissionsCategory = async (data: mongoose.Types.ObjectId[], req:
 
 export const dataAdapter = (req: Request, res: Response, next: NextFunction) => {
   const { categoriesName, videoYoutube, imageCreated, pdfCreated } = req.body;
+
   const allowedContentdata = {
     image: categoriesName.includes("image") ? imageCreated : undefined,
     videoYoutube: categoriesName.includes("videoYoutube") ? videoYoutube : undefined,

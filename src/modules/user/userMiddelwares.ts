@@ -127,7 +127,7 @@ const checkLength = (value: string, min: number, max: number, errorMessage: stri
   }
 };
 
-export const checkPattern = (value: string, pattern: RegExp, errorMessage: string, errors: string[]) => {
+const checkPattern = (value: string, pattern: RegExp, errorMessage: string, errors: string[]) => {
   if (!pattern.test(value)) {
     errors.push(errorMessage);
   }

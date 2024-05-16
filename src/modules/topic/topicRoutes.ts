@@ -2,7 +2,7 @@ import express from "express";
 import { ADMIN_ROLE, CREADOR_ROLE } from "../../shared/constants/roles";
 import { validateFields, validateObjectId, validateRole, validateToken } from "../../shared/middlewares/general";
 import { TopicController } from "./topicController";
-import { dataAdapter, validateCategoriesInTopic, validateTopicItems } from "./topicMiddlewares";
+import { dataAdapter, validateCategoriesInTopic, validateTipicToUpdate, validateTopicItems } from "./topicMiddlewares";
 
 const router = express.Router();
 
@@ -25,7 +25,16 @@ router.get("/getAll", getAllTopics);
 
 router.get("/getOne/:id", getOneTopic);
 
-router.put("/updateOne/:id", validateObjectId("id"), validateToken, validateRole([ADMIN_ROLE, CREADOR_ROLE]), updateTopic);
+router.put(
+  "/updateOne/:id",
+  validateObjectId("id"),
+  validateToken,
+  validateRole([ADMIN_ROLE, CREADOR_ROLE]),
+  validateCategoriesInTopic,
+  validateTipicToUpdate,
+  validateFields,
+  updateTopic
+);
 
 router.post("/removeOne/:id", validateObjectId("id"), validateToken, validateRole([ADMIN_ROLE]), removeTopic);
 

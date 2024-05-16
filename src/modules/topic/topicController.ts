@@ -29,7 +29,15 @@ export class TopicController {
   }
 
   async updateTopic(req: Request, res: Response) {
-    res.status(CREATED_STATUS).json({ message: "getAllTopic created successfully" });
+    try {
+      const { tokenRole, user, categories, newCategories, ...rest } = req.body;
+      console.log(rest.categories);
+      const result = await topicService.updateTopic(req.params.id, { categories: newCategories, ...rest } as TopicSchema);
+      res.status(CREATED_STATUS).json({ message: "getAllTopic created successfully", result });
+    } catch (error) {
+      console.log(error);
+      res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while updating the topic" });
+    }
   }
 
   async removeTopic(req: Request, res: Response) {

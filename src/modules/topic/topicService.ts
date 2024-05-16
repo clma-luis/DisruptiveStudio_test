@@ -17,8 +17,9 @@ export class TopicService {
     return name;
   }
 
-  async updateTopic(name: string) {
-    return name;
+  async updateTopic(id: string, data: TopicSchema) {
+    const result = await TopicModel.findOneAndUpdate({ _id: id }, { $set: { ...data } }, { new: true });
+    return result;
   }
 
   async removeTopic(name: string) {
