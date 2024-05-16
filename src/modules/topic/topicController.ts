@@ -7,16 +7,12 @@ export class TopicController {
   constructor() {}
 
   async createTopic(req: Request, res: Response) {
-    const { title, newCategories, videoYoutube, imageCreated, pdfCreated } = req.body;
+    const { title, newCategories, allowedContentdata } = req.body;
     try {
       const result = await topicService.createTopic({
         title,
         categories: newCategories,
-        allowedContent: {
-          image: imageCreated,
-          video: videoYoutube,
-          pdf: pdfCreated,
-        },
+        allowedContent: allowedContentdata,
       } as TopicSchema);
 
       res.status(CREATED_STATUS).json({ message: "Topic created successfully", result });

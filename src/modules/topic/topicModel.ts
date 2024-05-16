@@ -5,7 +5,7 @@ export interface TopicSchema extends Document {
   categories: mongoose.Types.ObjectId[];
   allowedContent: {
     image?: string;
-    video?: string;
+    videoYoutube?: string;
     pdf?: string;
   };
 }
@@ -15,7 +15,7 @@ const TopicSchema: Schema = new Schema({
   categories: [{ type: Schema.Types.ObjectId, ref: "Category", required: true }],
   allowedContent: {
     image: { type: String },
-    video: { type: String },
+    videoYoutube: { type: String },
     pdf: { type: String },
   },
 });

@@ -2,8 +2,7 @@ import express from "express";
 import { ADMIN_ROLE, CREADOR_ROLE } from "../../shared/constants/roles";
 import { validateFields, validateObjectId, validateRole, validateToken } from "../../shared/middlewares/general";
 import { TopicController } from "./topicController";
-import { validateTopicItems } from "./topicMiddlewares";
-import { uploadFileInCloudinary } from "../../shared/middlewares/fileMiddelwares";
+import { dataAdapter, validateCategoriesInTopic, validateTopicItems } from "./topicMiddlewares";
 
 const router = express.Router();
 
@@ -13,9 +12,12 @@ const { createTopic, getAllTopics, getOneTopic, removeTopic, updateTopic } = top
 
 router.post(
   "/create",
+  validateToken,
+  validateRole([ADMIN_ROLE, CREADOR_ROLE]),
+  validateCategoriesInTopic,
   validateTopicItems,
   validateFields,
-  /* validateToken, validateRole([ADMIN_ROLE, CREADOR_ROLE]), */
+  dataAdapter,
   createTopic
 );
 

@@ -27,14 +27,13 @@ export const validateFileExtension = (req: Request, nameField: string, validExte
 };
 
 export const uploadFileInCloudinary = async (req: Request, fieldName: string) => {
-  if (req.body.categoriesNotValidated) return;
+  if (req.body.notExecuteUploadFile || !fieldName) return;
 
   if (!req.files || Object.keys(req.files).length === 0 || !req.files[fieldName]) {
     throw new Error("No files were uploaded or fieldName not found");
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { tempFilePath } = req.files[`${fieldName}`] as any;
 
     const file = await cloudinary.v2.uploader.upload(tempFilePath, { resource_type: "auto" });
@@ -55,7 +54,6 @@ export const replaceImageInCloudinary = async (req: Request, res: Response, next
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { tempFilePath } = req.files[fieldName] as any;
     const imageId = hadleGetImageId(menu.image);
 
