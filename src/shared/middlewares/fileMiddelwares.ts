@@ -12,10 +12,11 @@ export const validateExistFile = (req: Request, fieldName: string) => {
 
 export const validateFileExtension = (req: Request, nameField: string, validExtensions: string[]) => {
   const nameImage = req.files![`${nameField}`];
+
   if (!nameImage) {
-    throw new Error(`Field <${nameField}> not found`);
+    return;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const nameSplited = (nameImage as any).name.split(".");
   const currentExtension = nameSplited[nameSplited.length - 1];
 
@@ -30,18 +31,19 @@ export const uploadFileInCloudinary = async (req: Request, fieldName: string) =>
   if (req.body.notExecuteUploadFile || !fieldName) return;
 
   if (!req.files || Object.keys(req.files).length === 0 || !req.files[fieldName]) {
-    throw new Error("No files were uploaded or fieldName not found");
+    return;
   }
 
   try {
     const { tempFilePath } = req.files[`${fieldName}`] as any;
+
+    if (!tempFilePath) throw new Error("No files were uploaded or fieldName not found");
 
     const file = await cloudinary.v2.uploader.upload(tempFilePath, { resource_type: "auto" });
 
     req.body[`${fieldName}Created`] = file.secure_url;
     return true;
   } catch (error) {
-    console.log(error);
     throw new Error("We have problems uploading the image, ple try later");
   }
 };
@@ -66,18 +68,12 @@ export const replaceImageInCloudinary = async (req: Request, res: Response, next
   }
 };
 
-export const removeImageFromCloud = async (req: Request, res: Response, next: NextFunction) => {
-  const { menu } = req.body;
-
-  const { image } = menu;
-
+export const removeImageFromCloud = async (req: Request, res: Response, next: NextFunction, url: string) => {
   try {
-    if (image) {
-      const imageId = hadleGetImageId(image);
+    if (url) {
+      const imageId = hadleGetImageId(url);
 
-      cloudinary.v2.uploader.destroy(imageId);
-
-      next();
+      await cloudinary.v2.uploader.destroy(imageId);
     }
   } catch (error) {
     return res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "We have problems to delete the image from the cloud, ple try later" });

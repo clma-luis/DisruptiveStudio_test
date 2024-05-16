@@ -33,7 +33,6 @@ export class SeedController {
       await UserModel.insertMany(users);
       res.status(CREATED_STATUS).json({ message: "Users seeded successfully" });
     } catch (error) {
-      console.log(error);
       res.status(INTERNAL_SERVER_ERROR_STATUS).json({ error: "Internal server error" });
     }
   };

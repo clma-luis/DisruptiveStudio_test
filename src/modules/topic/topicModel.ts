@@ -3,21 +3,17 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface TopicSchema extends Document {
   title: string;
   categories: mongoose.Types.ObjectId[];
-  allowedContent: {
-    image?: string;
-    videoYoutube?: string;
-    pdf?: string;
-  };
+  image?: string;
+  videoYoutube?: string;
+  pdf?: string;
 }
 
 const TopicSchema: Schema = new Schema({
   title: { type: String, required: true },
   categories: [{ type: Schema.Types.ObjectId, ref: "Category", required: true }],
-  allowedContent: {
-    image: { type: String },
-    videoYoutube: { type: String },
-    pdf: { type: String },
-  },
+  image: { type: String },
+  videoYoutube: { type: String },
+  pdf: { type: String },
 });
 
 TopicSchema.methods.toJSON = function () {

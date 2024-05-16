@@ -17,7 +17,6 @@ export class CategoryController {
         res.status(CREATED_STATUS).json({ message: "Category created successfully", result });
       }
     } catch (error) {
-      console.log({ error });
       res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while creating the category" });
     }
   }

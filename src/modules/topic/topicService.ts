@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import TopicModel, { TopicSchema } from "./topicModel";
 
 export class TopicService {
@@ -15,6 +16,12 @@ export class TopicService {
 
   async getAllTopics(name: string) {
     return name;
+  }
+
+  async updateCategoriesInTopic(id: string, data: TopicSchema, remove: TopicSchema) {
+    await TopicModel.updateOne({ _id: id }, { $set: { ...data }, $unset: { ...remove } }, { new: true });
+    const result = await TopicModel.findOne({ _id: id });
+    return result;
   }
 
   async updateTopic(id: string, data: TopicSchema) {

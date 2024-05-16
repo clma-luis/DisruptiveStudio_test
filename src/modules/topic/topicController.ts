@@ -12,12 +12,11 @@ export class TopicController {
       const result = await topicService.createTopic({
         title,
         categories: newCategories,
-        allowedContent: allowedContentdata,
+        ...allowedContentdata,
       } as TopicSchema);
 
       res.status(CREATED_STATUS).json({ message: "Topic created successfully", result });
     } catch (error) {
-      console.log(error);
       res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while creating the topic" });
     }
   }
@@ -28,14 +27,29 @@ export class TopicController {
     res.status(CREATED_STATUS).json({ message: "getAllTopic created successfully" });
   }
 
+  async updateCategoriesInTopic(req: Request, res: Response) {
+    const { newCategories, dataToSend, dataToRemove } = req.body;
+
+    console.log({ dataToRemove });
+
+    const { _id, __v, categories, ...rest } = dataToSend;
+
+    const { id } = req.params;
+    try {
+      const result = await topicService.updateCategoriesInTopic(id, { categories: newCategories, ...rest }, dataToRemove);
+      res.status(CREATED_STATUS).json({ message: "updateCategoriesInTopic created successfully", result });
+    } catch (error) {
+      res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while updating the topic" });
+    }
+  }
+
   async updateTopic(req: Request, res: Response) {
     try {
       const { tokenRole, user, categories, newCategories, ...rest } = req.body;
-      console.log(rest.categories);
+
       const result = await topicService.updateTopic(req.params.id, { categories: newCategories, ...rest } as TopicSchema);
       res.status(CREATED_STATUS).json({ message: "getAllTopic created successfully", result });
     } catch (error) {
-      console.log(error);
       res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while updating the topic" });
     }
   }

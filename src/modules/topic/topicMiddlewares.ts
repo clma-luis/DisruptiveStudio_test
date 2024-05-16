@@ -2,31 +2,44 @@ import { NextFunction, Request, Response } from "express";
 import { body } from "express-validator";
 import mongoose from "mongoose";
 import { DOCUMENT_PDF_EXTENSIONS, IMAGE_EXTENSIONS } from "../../shared/constants/fileExtensions";
-import { uploadFileInCloudinary, validateExistFile, validateFileExtension } from "../../shared/middlewares/fileMiddelwares";
+import { YOUTUBE_PATTERN } from "../../shared/constants/regex";
+import { BAD_REQUEST_STATUS, INTERNAL_SERVER_ERROR_STATUS } from "../../shared/constants/statusHTTP";
+import { removeImageFromCloud, uploadFileInCloudinary, validateFileExtension } from "../../shared/middlewares/fileMiddelwares";
 import { validateObjectId } from "../../shared/middlewares/general";
 import CategoryModel, { CategorySchema } from "../category/categoryModel";
-import TopicModel from "./topicModel";
-import { BAD_REQUEST_STATUS } from "../../shared/constants/statusHTTP";
-import { YOUTUBE_PATTERN } from "../../shared/constants/regex";
+import TopicModel, { TopicSchema } from "./topicModel";
 
 export const validateTopicItems = [
   body("title", "Field name is required and string").custom((_, { req }) => validateIfUniqueTopic(req as Request)),
-  body("categories", "Field categories is required and array"),
-  body("videoYoutube", "Field videoYoutube is string").custom((_, { req }) => validateURLYoutube(req as Request)),
-  body("image")
-    /*     .custom((_, { req }) => validateExistFile(req as Request, "image")) */
-    .custom((_, { req }) => validateFileExtension(req as Request, "image", IMAGE_EXTENSIONS))
-    .custom((_, { req }) => uploadFileInCloudinary(req as Request, "image")),
-  body("pdf")
-    /*    .custom((_, { req }) => validateExistFile(req as Request, "pdf")) */
-    .custom((_, { req }) => validateFileExtension(req as Request, "pdf", DOCUMENT_PDF_EXTENSIONS))
-    .custom((_, { req }) => uploadFileInCloudinary(req as Request, "pdf")),
+  body("categories", "Field categories is required and string of ObjectId").notEmpty().withMessage("Categories is required"),
+  body("videoYoutube", "Field videoYoutube is string")
+    .custom((_, { req }) => validateURLYoutube(req as Request))
+    .optional(),
+  body("image").custom(async (_, { req }) => await executeFuntionsFile(req as Request, "image", IMAGE_EXTENSIONS)),
+  body("pdf").custom(async (_, { req }) => await executeFuntionsFile(req as Request, "pdf", DOCUMENT_PDF_EXTENSIONS)),
 ];
 
 export const validateTipicToUpdate = [
-  body("title", "Field name is required and string").isString().notEmpty(),
-  body("videoYoutube", "Field videoYoutube is string").custom((_, { req }) => validateURLYoutube(req as Request)),
+  body("title", "Field name is required and string").optional().notEmpty().isString(),
+  body("categories", "Field categories is required and string of ObjectId")
+    .custom((_, { req }) => {
+      const { categories } = req.body;
+    })
+    .if(body("categories").exists()),
+  body("videoYoutube", "Field videoYoutube is string")
+    .custom((_, { req }) => validateURLYoutube(req as Request))
+    .if(body("videoYoutube").exists()),
 ];
+
+const executeFuntionsFile = async (req: Request, fileName: string, validExtensions: string[]) => {
+  const { categoriesName } = req.body;
+
+  if (!req.files || !categoriesName.includes(fileName)) {
+    return true;
+  }
+  validateFileExtension(req as Request, fileName, validExtensions);
+  await uploadFileInCloudinary(req as Request, fileName);
+};
 
 const validateURLYoutube = (req: Request) => {
   if (!YOUTUBE_PATTERN.test(req.body.videoYoutube)) {
@@ -38,6 +51,10 @@ const validateURLYoutube = (req: Request) => {
 
 const validateIfUniqueTopic = async (req: Request) => {
   const { title } = req.body;
+
+  if (!title) {
+    throw new Error("The title is required and string");
+  }
 
   const response = await TopicModel.findOne({ title });
 
@@ -51,38 +68,41 @@ const validateIfUniqueTopic = async (req: Request) => {
 
 export const validateCategoriesInTopic = async (req: Request, res: Response, next: NextFunction) => {
   const { categories } = req.body;
+  const currentCategories = categories ? categories : "";
 
-  const categoriesArray = categories.replaceAll(" ", "").split(",");
-  const validateIds = categoriesArray.some((item: string) => !validateObjectId(item));
+  if (!currentCategories) {
+    res.status(BAD_REQUEST_STATUS).json({ message: "Al menos una categoría es requerida" });
+  } else {
+    const categoriesArray = currentCategories.replaceAll(/ /g, "").split(",");
+    const validateIds = categoriesArray.some((item: string) => !validateObjectId(item));
 
-  if (validateIds) {
-    req.body.notExecuteUploadFile = true;
-    throw new Error("Field categories must be a valid array of ObjectId");
+    if (validateIds) {
+      req.body.notExecuteUploadFile = true;
+      res.status(BAD_REQUEST_STATUS).json({ message: "Field categories must be a valid array of ObjectId" });
+    }
+
+    const convertToObjectIds = categoriesArray.map((id: string) => {
+      return mongoose.Types.ObjectId.createFromHexString(id);
+    });
+
+    const result = await validatePermissionsCategory(convertToObjectIds, req as Request);
+
+    if (result) {
+      req.body.notExecuteUploadFile = true;
+      const categoryName = result.name;
+      res.status(BAD_REQUEST_STATUS).json({ message: `La categoría "${categoryName}" no existe` });
+    }
+
+    if (categoriesArray.length === 0) {
+      req.body.notExecuteUploadFile = true;
+      throw new Error("Field categories is required and array");
+    }
+
+    req.body.newCategories = convertToObjectIds;
+    req.body.notExecuteUploadFile = false;
+
+    next();
   }
-
-  const convertToObjectIds = categoriesArray.map((id: string) => {
-    return mongoose.Types.ObjectId.createFromHexString(id);
-  });
-
-  console.log(convertToObjectIds);
-
-  const result = await validatePermissionsCategory(convertToObjectIds, req as Request);
-
-  if (result) {
-    req.body.notExecuteUploadFile = true;
-    const categoryName = result.name;
-    res.status(BAD_REQUEST_STATUS).json({ message: `La categoría "${categoryName}" no existe` });
-  }
-
-  if (categoriesArray.length === 0) {
-    req.body.notExecuteUploadFile = true;
-    throw new Error("Field categories is required and array");
-  }
-
-  req.body.newCategories = convertToObjectIds;
-  req.body.notExecuteUploadFile = false;
-
-  next();
 };
 
 const validatePermissionsCategory = async (data: mongoose.Types.ObjectId[], req: Request) => {
@@ -105,6 +125,63 @@ export const dataAdapter = (req: Request, res: Response, next: NextFunction) => 
   };
 
   req.body.allowedContentdata = allowedContentdata;
+
+  next();
+};
+
+//===================================================================
+//=================== UPDATE CATEGORIES IN TOPIC ====================
+//===================================================================
+
+export const validateIfExistTopic = async (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  const topic = await TopicModel.findById(id);
+  if (!topic) {
+    req.body.notExecuteUploadFile = true;
+    return res.status(BAD_REQUEST_STATUS).json({ message: "La temática no existe" });
+  }
+
+  req.body.currentTopic = topic as TopicSchema;
+  next();
+};
+
+export const cleanDocument = (req: Request, res: Response, next: NextFunction) => {
+  const { currentTopic, categoriesName } = req.body;
+  let documentToSend: Record<string, any> = { ...currentTopic };
+  const avoidProperties = ["__v", "_id", "title", "categories"];
+
+  if (!currentTopic) {
+    return res.status(INTERNAL_SERVER_ERROR_STATUS).json({ error: "Ha ocurrido un error intenta mas tarde" });
+  }
+
+  const keys = Object.keys(currentTopic._doc);
+  const filterKeys = keys.filter((item) => !avoidProperties.includes(item));
+
+  const categoriesToRemove = filterKeys.filter((category) => !categoriesName.includes(category));
+
+  for (const categoryToRemove of categoriesToRemove) {
+    delete documentToSend[categoryToRemove];
+    if (categoryToRemove === "pdf" || categoryToRemove === "image") {
+      const url = currentTopic[categoryToRemove];
+
+      removeImageFromCloud(req, res, next, url);
+    }
+  }
+
+  const dataToSend = keys.reduce((acc, el) => {
+    if (categoriesToRemove.includes(el)) {
+      return acc;
+    }
+
+    return { ...acc, [el]: currentTopic[el] };
+  }, {});
+
+  const dataToRemove = categoriesToRemove.reduce((acc, el) => {
+    return { ...acc, [el]: "" };
+  }, {});
+
+  req.body.dataToSend = dataToSend;
+  req.body.dataToRemove = dataToRemove;
 
   next();
 };
