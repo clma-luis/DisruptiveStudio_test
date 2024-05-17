@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { createServer, Server as HttpServer } from "http";
 import fileUpload from "express-fileupload";
+import swaggerUi from "swagger-ui-express";
 
 import { dbConnection } from "./database/config";
 
@@ -14,6 +15,7 @@ import seedRoutes from "./modules/seeds/seedRoutes";
 import userRoutes from "./modules/user/userRoutes";
 import categoryRoutes from "./modules/category/categoryRoutes";
 import topicRoutes from "./modules/topic/topicRoutes";
+import swaggerSpec from "./swaggerOptions";
 
 export class Server {
   private app: express.Application;
@@ -62,6 +64,10 @@ export class Server {
 
     this.app.use("/api/category", categoryRoutes);
     this.app.use("/api/topic", topicRoutes);
+  }
+
+  private configureSwagger() {
+    this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
 
   public listen() {
