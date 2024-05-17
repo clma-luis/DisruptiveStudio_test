@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require("bcrypt");
 import { NextFunction, Request, Response } from "express";
 import { body } from "express-validator";
@@ -10,35 +9,35 @@ import { BAD_REQUEST_STATUS, INTERNAL_SERVER_ERROR_STATUS, NOT_FOUND } from "../
 import { ADMIN_ROLE } from "../../shared/constants/roles";
 
 export const validatePasswordData = [
-  body("password", "Field password is required and string")
+  body("password", "El password es requerido")
     .optional()
     .custom((value) => validatePasswordConditions(value)),
-  body("newPassword", "Field password is required and string")
+  body("newPassword", "El password es requerido como string")
     .optional()
     .custom((value) => validatePasswordConditions(value)),
 ];
 
 const validatePasswordConditions = (value: string) => {
-  if (!value) throw new Error("The password is required");
+  if (!value) throw new Error("El password es requerido");
   const errors: string[] = [];
 
-  checkLength(value, 6, 10, "Password must be between 6 and 10 characters", errors);
-  checkPattern(value, LETTER_PATTERN, "Password must contain at least one letter", errors);
-  checkPattern(value, SPECIAL_CHARACTERS_PATTERN, "Password must contain at least one special character", errors);
-  checkPattern(value, NUMBER_PATTERN, "Password must contain at least one number", errors);
+  checkLength(value, 6, 10, "El password debe ser entre 6 y 10 caracteres", errors);
+  checkPattern(value, LETTER_PATTERN, "El password debe contener al menos una letra", errors);
+  checkPattern(value, SPECIAL_CHARACTERS_PATTERN, "EL password debe contener al menos un caracter especial", errors);
+  checkPattern(value, NUMBER_PATTERN, "El password debe contener al menos un numero", errors);
 
   if (errors.length > 0) throw new Error(errors.join(", "));
 
   return true;
 };
 
-const validateRoleUser = async (value: string, avoidRole?: string) => {
-  if (value === avoidRole) throw new Error(`You cannot create a user with the role ${avoidRole}`);
-  if (!value) throw new Error("The role is required");
+export const validateRoleUser = async (value: string, avoidRole?: string) => {
+  if (value === avoidRole) throw new Error(`No puedes crear un usuario con el rol ${avoidRole}`);
+  if (!value) throw new Error("El rol es requerido");
 
   const existModel = await RoleModel.findOne({ role: value });
 
-  if (!existModel) throw new Error("The role does not exist in the database");
+  if (!existModel) throw new Error("El rol no existe en la base de datos");
 
   return true;
 };
@@ -49,7 +48,7 @@ export const validateExistUserFromIdParams = async (req: Request, res: Response,
   const user = await UserModel.findById(id);
 
   if (!user || !!user.deleted) {
-    return res.status(NOT_FOUND).json({ message: "the user does not exist" });
+    return res.status(NOT_FOUND).json({ message: "El usuario no existe" });
   }
 
   req.body.userFromParamsId = user;
@@ -68,7 +67,9 @@ export const hashPassword = async (req: Request, res: Response, next: NextFuncti
 
     next();
   } catch (error) {
-    res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "Internal server error: password not hashed" });
+    res
+      .status(INTERNAL_SERVER_ERROR_STATUS)
+      .json({ message: "Ha ocurrido un error al crear la cuenta, intente nuevamente | password not hashed" });
   }
 };
 
@@ -76,43 +77,43 @@ export const validateIsDiferentPassword = async (req: Request, res: Response, ne
   const { password, newPassword } = req.body;
 
   if (password === newPassword) {
-    return res.status(BAD_REQUEST_STATUS).json({ message: "The new password must be different from the old password" });
+    return res.status(BAD_REQUEST_STATUS).json({ message: "El nuevo password debe ser diferente del password actual" });
   }
 
   next();
 };
 
 export const validateEmailWithDataBase = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, userFromParamsId } = req.body;
+  const { email, userFromParamsId, userName } = req.body;
 
   if (userFromParamsId && email !== userFromParamsId?.email) {
-    return res.status(BAD_REQUEST_STATUS).json({ message: "The email is different from data base email" });
+    return res.status(BAD_REQUEST_STATUS).json({ message: "El email es diferente del email de la base de datos" });
   }
 
-  const existEmail = await compareEmailWithDB(email);
-  if (existEmail) return res.status(BAD_REQUEST_STATUS).json({ message: "New email already exists in the database" });
+  const existEmail = await compareEmailAndUserNameWithDB(email, userName);
+  if (existEmail) return res.status(BAD_REQUEST_STATUS).json({ message: "El email o el userName ya existen en la base de datos" });
 
   next();
 };
 
 export const validateNewEmail = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, newEmail, user } = req.body;
+  const { email, newEmail, user, userName } = req.body;
 
-  if (user.email !== email) return res.status(BAD_REQUEST_STATUS).json({ message: "The email is different from data base email" });
+  if (user.email !== email) return res.status(BAD_REQUEST_STATUS).json({ message: "El email es diferente del email de la base de datos" });
 
   if (email === newEmail) {
-    return res.status(BAD_REQUEST_STATUS).json({ message: "The new email must be different from the old email" });
+    return res.status(BAD_REQUEST_STATUS).json({ message: "El nuevo email debe ser diferente del email de la base de datos" });
   }
 
-  const existEmail = await compareEmailWithDB(newEmail);
+  const existEmail = await compareEmailAndUserNameWithDB(newEmail, userName);
 
-  if (existEmail) return res.status(BAD_REQUEST_STATUS).json({ message: "New email already exists in the database" });
+  if (existEmail) return res.status(BAD_REQUEST_STATUS).json({ message: "El nuevo email ya existe en la base de datos" });
 
   next();
 };
 
-const compareEmailWithDB = async (email: string) => {
-  const user = await UserModel.findOne({ email }).exec();
+const compareEmailAndUserNameWithDB = async (email: string, userName: string) => {
+  const user = await UserModel.findOne({ $or: [{ email: email }, { userName: userName }] }).exec();
 
   return user;
 };
@@ -134,21 +135,20 @@ const checkPattern = (value: string, pattern: RegExp, errorMessage: string, erro
 };
 
 export const validateUserBody = [
-  body("userName", "Field userName is required and string").not().isEmpty().isString(),
-  body("email", "Field email is required and must be available format").not().isEmpty().isEmail(),
-  body("password", "Field password is required and string").custom((value) => validatePasswordConditions(value)),
+  body("userName", "El campo userName es requerido").not().isEmpty().isString(),
+  body("email", "El email es requerido y debe ser un formato de correo").not().isEmpty().isEmail(),
+  body("password", "El password es requerido como string").custom((value) => validatePasswordConditions(value)),
   body("role").custom((value) => validateRoleUser(value, ADMIN_ROLE)),
 ];
 
 export const validateDataToUpdate = [
-  body("name", "Field name is required and string").optional().isString(),
-  body("image", "Field image is string").optional().isString(),
+  body("userName", "El nombre es requerido").optional().isString(),
   body("role")
     .optional()
     .custom((value) => validateRoleUser(value)),
 ];
 
 export const validateEmailData = [
-  body("email", "Field email is required and must be available format").not().isEmpty().isEmail(),
-  body("newEmail", "Field email is required and must be available format").not().isEmpty().isEmail(),
+  body("email", "El email es requerido y debe ser un formato de correo").not().isEmpty().isEmail(),
+  body("newEmail", "El nuevo email es requerido y debe ser un formato de correo").not().isEmpty().isEmail(),
 ];

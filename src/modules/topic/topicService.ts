@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import TopicModel, { TopicSchema } from "./topicModel";
 
 export class TopicService {
@@ -10,12 +9,56 @@ export class TopicService {
     return result;
   }
 
-  async getOneTopic(name: string) {
-    return name;
+  async getOneTopic(id: string) {
+    const result = (await TopicModel.findOne({ _id: id }).exec()) as TopicSchema;
+
+    return result;
   }
 
-  async getAllTopics(name: string) {
-    return name;
+  async getAllTopics({ page, size, category, term }: { page: number; size: number; category: string; term: string }) {
+    const skip = (page - 1) * size;
+
+    const termRegex = new RegExp(term, "i");
+    const response = await TopicModel.aggregate([
+      { $match: { $or: [{ title: termRegex }, { categories: category }] } },
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: size },
+            {
+              $project: {
+                id: "$_id",
+                title: 1,
+                image: 1,
+                categories: 1,
+                pdf: 1,
+                videoYoutube: 1,
+                _id: 0,
+              },
+            },
+          ],
+          totalCount: [{ $count: "total" }],
+        },
+      },
+    ]);
+
+    const { data, totalCount } = response[0];
+
+    if (!data.length) {
+      const result = { data, page, total: 0, totalPages: 0 };
+      return result;
+    }
+
+    const totalPages = Math.ceil(totalCount[0].total / size);
+    const result = {
+      data,
+      page,
+      total: totalCount[0].total,
+      totalPages,
+    };
+
+    return result;
   }
 
   async updateCategoriesInTopic(id: string, data: TopicSchema, remove: TopicSchema) {
@@ -29,8 +72,9 @@ export class TopicService {
     return result;
   }
 
-  async removeTopic(name: string) {
-    return name;
+  async removeTopic(id: string) {
+    const result = await TopicModel.deleteOne({ _id: id });
+    return result;
   }
 }
 

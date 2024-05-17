@@ -16,11 +16,14 @@ const TopicSchema: Schema = new Schema({
   pdf: { type: String },
 });
 
-TopicSchema.methods.toJSON = function () {
-  const { __v, _id, ...topic } = this.toObject();
-  topic.id = _id;
-  return topic;
-};
+TopicSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    ret.id = ret._id.toString();
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
 
 const TopicModel = mongoose.model<TopicSchema>("Topic", TopicSchema);
 

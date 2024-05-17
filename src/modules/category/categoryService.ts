@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import TopicModel from "../topic/topicModel";
 import CategoryModel, { CategorySchema } from "./categoryModel";
 
 export class CategoryService {
@@ -9,12 +11,15 @@ export class CategoryService {
     return result;
   }
 
-  async getOneCategory() {
-    return "category found";
+  async getOneCategory(id: string) {
+    const result = (await CategoryModel.findOne({ _id: id })) as CategorySchema;
+
+    return result;
   }
 
   async getAllCategories() {
-    return "categories found";
+    const result = await CategoryModel.find().exec();
+    return result;
   }
 
   async updateCategory(id: string, name: string) {
@@ -22,9 +27,19 @@ export class CategoryService {
     return result;
   }
 
-  async removeCategory(id: string) {
-    (await CategoryModel.findOneAndUpdate({ _id: id }, { deleted: 1 }).exec()) as CategorySchema;
-    return "category removed successfully";
+  async removeCategory(id: string, data: CategorySchema) {
+    const name = data.name;
+    const categoryPromise = CategoryModel.findOneAndDelete({ _id: id }).exec();
+    const topicPromise = TopicModel.updateMany(
+      { categories: mongoose.Types.ObjectId.createFromHexString(id) },
+      {
+        $pull: { categories: mongoose.Types.ObjectId.createFromHexString(id) },
+        $unset: { [name]: "" },
+      }
+    ).exec();
+
+    const [category, topic] = await Promise.all([categoryPromise, topicPromise]);
+    return { category, topic };
   }
 
   async resetCategory(id: string) {

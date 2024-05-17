@@ -7,7 +7,7 @@ import {
   dataAdapter,
   validateCategoriesInTopic,
   validateIfExistTopic,
-  validateTipicToUpdate,
+  validateTopicToUpdate,
   validateTopicItems,
 } from "./topicMiddlewares";
 
@@ -44,15 +44,16 @@ router.put(
 );
 
 router.put(
-  "/updateFields/:id",
+  "/updateOne/:id",
   validateObjectId("id"),
+  validateIfExistTopic,
   validateToken,
   validateRole([ADMIN_ROLE, CREADOR_ROLE]),
-  validateTipicToUpdate,
+  validateTopicToUpdate,
   validateFields,
   updateTopic
 );
 
-router.post("/removeOne/:id", validateObjectId("id"), validateToken, validateRole([ADMIN_ROLE]), removeTopic);
+router.post("/removeOne/:id", validateObjectId("id"), validateIfExistTopic, validateToken, validateRole([ADMIN_ROLE]), removeTopic);
 
 export default router;

@@ -10,11 +10,15 @@ const CategorySchema: Schema = new Schema({
   deleted: { type: Number, default: 0 },
 });
 
-CategorySchema.methods.toJSON = function () {
-  const { __v, _id, deleted, ...category } = this.toObject();
-  category.id = _id.toString();
-  return category;
-};
+CategorySchema.set("toJSON", {
+  transform: function (doc, ret) {
+    ret.id = ret._id.toString();
+    delete ret._id;
+    delete ret.__v;
+    delete ret.deleted;
+    return ret;
+  },
+});
 
 const CategoryModel = mongoose.model<CategorySchema>("Category", CategorySchema);
 

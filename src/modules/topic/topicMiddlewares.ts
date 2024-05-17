@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { body } from "express-validator";
 import mongoose from "mongoose";
 import { DOCUMENT_PDF_EXTENSIONS, IMAGE_EXTENSIONS } from "../../shared/constants/fileExtensions";
-import { YOUTUBE_PATTERN } from "../../shared/constants/regex";
+import { CLOUDINARY_PATTERN, YOUTUBE_PATTERN } from "../../shared/constants/regex";
 import { BAD_REQUEST_STATUS, INTERNAL_SERVER_ERROR_STATUS } from "../../shared/constants/statusHTTP";
 import { removeImageFromCloud, uploadFileInCloudinary, validateFileExtension } from "../../shared/middlewares/fileMiddelwares";
 import { validateObjectId } from "../../shared/middlewares/general";
@@ -19,17 +19,50 @@ export const validateTopicItems = [
   body("pdf").custom(async (_, { req }) => await executeFuntionsFile(req as Request, "pdf", DOCUMENT_PDF_EXTENSIONS)),
 ];
 
-export const validateTipicToUpdate = [
+export const validateTopicToUpdate = [
   body("title", "Field name is required and string").optional().notEmpty().isString(),
-  body("categories", "Field categories is required and string of ObjectId")
-    .custom((_, { req }) => {
-      const { categories } = req.body;
-    })
-    .if(body("categories").exists()),
   body("videoYoutube", "Field videoYoutube is string")
     .custom((_, { req }) => validateURLYoutube(req as Request))
     .if(body("videoYoutube").exists()),
+  body("image").custom(async (_, { req }) => {
+    if (!req.body.image && !req.files?.image) {
+      return true;
+    }
+    await validatefilesToUpdate(req as Request, "image", IMAGE_EXTENSIONS);
+  }),
+  body("pdf").custom(async (_, { req }) => {
+    if (!req.body.pdf && !req.files?.pdf) {
+      return true;
+    }
+    await validatefilesToUpdate(req as Request, "pdf", DOCUMENT_PDF_EXTENSIONS);
+  }),
 ];
+
+const validatefilesToUpdate = async (req: Request, fileName: string, validExtensions: string[]) => {
+  const nameImage = req.files![`${fileName}`];
+  const { currentTopic } = req.body;
+  let url = "";
+
+  if (currentTopic[fileName] !== undefined || !currentTopic[fileName]) {
+    url = currentTopic[fileName];
+  }
+
+  if (req.body[fileName]) {
+    if (!CLOUDINARY_PATTERN.test(req.body[fileName])) {
+      throw new Error("La url del campo " + fileName + " es inválida");
+    }
+    return true;
+  }
+
+  const result = validateFileExtension(req as Request, fileName, validExtensions);
+
+  if (result && nameImage) {
+    await uploadFileInCloudinary(req as Request, fileName);
+    await removeImageFromCloud(req, req.res as Response, req.next as NextFunction, url);
+  }
+
+  return true;
+};
 
 const executeFuntionsFile = async (req: Request, fileName: string, validExtensions: string[]) => {
   const { categoriesName } = req.body;
@@ -42,7 +75,9 @@ const executeFuntionsFile = async (req: Request, fileName: string, validExtensio
 };
 
 const validateURLYoutube = (req: Request) => {
-  if (!YOUTUBE_PATTERN.test(req.body.videoYoutube)) {
+  const url = req.body.videoYoutube;
+  if (!url) return true;
+  if (!YOUTUBE_PATTERN.test(url)) {
     req.body.notExecuteUploadFile = true;
     throw new Error("Field videoYoutube is not valid");
   }

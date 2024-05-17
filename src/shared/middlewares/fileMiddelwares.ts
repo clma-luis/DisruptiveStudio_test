@@ -14,7 +14,7 @@ export const validateFileExtension = (req: Request, nameField: string, validExte
   const nameImage = req.files![`${nameField}`];
 
   if (!nameImage) {
-    return;
+    return true;
   }
 
   const nameSplited = (nameImage as any).name.split(".");

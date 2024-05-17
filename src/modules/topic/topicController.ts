@@ -1,10 +1,16 @@
 import { Request, Response } from "express";
-import { CREATED_STATUS, INTERNAL_SERVER_ERROR_STATUS } from "../../shared/constants/statusHTTP";
+import { CREATED_STATUS, INTERNAL_SERVER_ERROR_STATUS, OK_STATUS } from "../../shared/constants/statusHTTP";
 import { topicService } from "./topicService";
 import { TopicSchema } from "./topicModel";
 
 export class TopicController {
-  constructor() {}
+  private page: number;
+  private size: number;
+
+  constructor() {
+    this.page = 1;
+    this.size = 10;
+  }
 
   async createTopic(req: Request, res: Response) {
     const { title, newCategories, allowedContentdata } = req.body;
@@ -21,16 +27,35 @@ export class TopicController {
     }
   }
   async getOneTopic(req: Request, res: Response) {
-    res.status(CREATED_STATUS).json({ message: "getOneTopic created successfully" });
+    try {
+      const result = await topicService.getOneTopic(req.params.id);
+      res.status(OK_STATUS).json({ message: "Temática encontrada", result });
+    } catch (error) {
+      res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "Un error ha ocurrido al buscar la tematica, intente nuevamente" });
+    }
   }
   async getAllTopics(req: Request, res: Response) {
-    res.status(CREATED_STATUS).json({ message: "getAllTopic created successfully" });
+    try {
+      const { page, size, category, term } = req.query;
+      const currentTerm = !term ? "" : term;
+      const currentPage = !page ? this.page : Number(page);
+      const currentSize = !size ? this.size : Number(size);
+      const currentCategory = !category ? "" : category;
+
+      const result = await topicService.getAllTopics({
+        page: currentPage,
+        size: currentSize,
+        category: currentCategory as string,
+        term: currentTerm as string,
+      });
+      res.status(OK_STATUS).json({ message: "Temáticas encontradas exitosamente", result });
+    } catch (error) {
+      res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "Ha ocurrido un error en la busqueda de temáticas" });
+    }
   }
 
   async updateCategoriesInTopic(req: Request, res: Response) {
     const { newCategories, dataToSend, dataToRemove } = req.body;
-
-    console.log({ dataToRemove });
 
     const { _id, __v, categories, ...rest } = dataToSend;
 
@@ -47,7 +72,11 @@ export class TopicController {
     try {
       const { tokenRole, user, categories, newCategories, ...rest } = req.body;
 
-      const result = await topicService.updateTopic(req.params.id, { categories: newCategories, ...rest } as TopicSchema);
+      const pdf = rest.pdfCreated ? rest.pdfCreated : rest.pdf;
+      const image = rest.imageCreated ? rest.imageCreated : rest.image;
+
+      const result = await topicService.updateTopic(req.params.id, { ...rest, pdf, image } as TopicSchema);
+
       res.status(CREATED_STATUS).json({ message: "getAllTopic created successfully", result });
     } catch (error) {
       res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "An error occurred while updating the topic" });
@@ -55,6 +84,8 @@ export class TopicController {
   }
 
   async removeTopic(req: Request, res: Response) {
-    res.status(CREATED_STATUS).json({ message: "removeTopic created successfully" });
+    const { id } = req.params;
+    const result = await topicService.removeTopic(id);
+    res.status(CREATED_STATUS).json({ message: "removeTopic created successfully", result });
   }
 }
