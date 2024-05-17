@@ -34,6 +34,17 @@ export class TopicController {
       res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "Un error ha ocurrido al buscar la tematica, intente nuevamente" });
     }
   }
+
+  async findTopicsByCategory(req: Request, res: Response) {
+    const { id } = req.params;
+    try {
+      const topics = await topicService.findTopicsByCategory(id);
+      if (!topics) return res.status(OK_STATUS).json({ message: "No se encontraron temas", result: { data: [] } });
+      res.status(OK_STATUS).json({ message: "Temáticas encontradas exitosamente", result: { data: topics } });
+    } catch (error) {
+      res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "Un error ha ocurrido al buscar las tematicas, intente nuevamente" });
+    }
+  }
   async getAllTopics(req: Request, res: Response) {
     try {
       const { page, size, category, term } = req.query;

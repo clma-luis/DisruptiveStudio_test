@@ -15,6 +15,11 @@ export class TopicService {
     return result;
   }
 
+  async findTopicsByCategory(categoryId: string) {
+    const topics = await TopicModel.find({ categories: categoryId }).exec();
+    return topics;
+  }
+
   async getAllTopics({ page, size, category, term }: { page: number; size: number; category: string; term: string }) {
     const skip = (page - 1) * size;
 

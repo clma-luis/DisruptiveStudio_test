@@ -15,7 +15,7 @@ const router = express.Router();
 
 const topicController = new TopicController();
 
-const { createTopic, getAllTopics, getOneTopic, removeTopic, updateCategoriesInTopic, updateTopic } = topicController;
+const { createTopic, getAllTopics, getOneTopic, findTopicsByCategory, removeTopic, updateCategoriesInTopic, updateTopic } = topicController;
 
 /**
  * @swagger
@@ -366,5 +366,7 @@ router.put(
  *                   type: string
  */
 router.post("/removeOne/:id", validateObjectId("id"), validateIfExistTopic, validateToken, validateRole([ADMIN_ROLE]), removeTopic);
+
+router.get("/findCategoryById/:id", validateObjectId("id"), findTopicsByCategory);
 
 export default router;

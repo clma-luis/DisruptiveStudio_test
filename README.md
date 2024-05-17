@@ -7,6 +7,8 @@ Aquí tienes un `README.md` generado para tu proyecto:
 
 Este es un proyecto de prueba para DisruptiveStudio utilizando Node.js, Express y TypeScript. El proyecto incluye autenticación, manejo de roles, subida de archivos, validación de datos y documentación de la API con Swagger.
 
+Se ha utilizado para este proyecto las siguientes herramientas relevantes: Node.js, express.js, typscript, jest.js, Cloudinary (para guardar pdf e imagenes), nodemon, JWT, bcrypt, express-fileupload, express-validator, entre otras.
+
 ## Estructura del Proyecto
 
 El proyecto tiene la siguiente estructura de directorios:
@@ -69,6 +71,7 @@ disruptivestudio_test/
    ```bash
    npm install
    ```
+   Es importante decir que la version de node usada es v20.11.1
 
 4. Crear un archivo `.env` en el directorio raíz del proyecto y configurar las variables de entorno necesarias.
 
@@ -80,9 +83,14 @@ En el archivo `package.json`, se encuentran los siguientes scripts:
 - `npm run dev`: Ejecuta la aplicación en modo desarrollo utilizando `ts-node` y `nodemon`.
 - `npm run build`: Compila el proyecto TypeScript.
 - `npm test`: Ejecuta las pruebas utilizando `jest`.
-- `npm run eslint`: Ejecuta ESLint para revisar el código.
 
 ## Uso
+
+Levantar la base de datos con docker
+
+```bash
+docker compose up -d
+```
 
 Para iniciar el servidor en modo desarrollo:
 
@@ -95,6 +103,8 @@ Para compilar y ejecutar el servidor en modo producción:
 ```bash
 npm start
 ```
+
+ES IMPORTANTE DESTACAR QUE EN EL .ENV.TEMPLATE ESTAN LAS URL NECESARIAS PARA PODER LEVANTAR EL PROYECTO
 
 ## Logging
 
