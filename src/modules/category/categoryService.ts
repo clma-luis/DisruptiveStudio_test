@@ -28,18 +28,22 @@ export class CategoryService {
   }
 
   async removeCategory(id: string, data: CategorySchema) {
-    const name = data.name;
-    const categoryPromise = CategoryModel.findOneAndDelete({ _id: id }).exec();
-    const topicPromise = TopicModel.updateMany(
-      { categories: mongoose.Types.ObjectId.createFromHexString(id) },
-      {
-        $pull: { categories: mongoose.Types.ObjectId.createFromHexString(id) },
-        $unset: { [name]: "" },
-      }
-    ).exec();
+    try {
+      const name = data.name;
+      const categoryPromise = CategoryModel.findOneAndDelete({ _id: id }).exec();
+      const topicPromise = TopicModel.updateMany(
+        { categories: mongoose.Types.ObjectId.createFromHexString(id) },
+        {
+          $pull: { categories: mongoose.Types.ObjectId.createFromHexString(id) },
+          $unset: { [name]: "" },
+        }
+      ).exec();
 
-    const [category, topic] = await Promise.all([categoryPromise, topicPromise]);
-    return { category, topic };
+      const [category, topic] = await Promise.all([categoryPromise, topicPromise]);
+      return { category, topic };
+    } catch (error) {
+      throw new Error("Tenemos problemas al eliminar la categoria");
+    }
   }
 
   async resetCategory(id: string) {

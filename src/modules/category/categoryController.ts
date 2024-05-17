@@ -48,12 +48,7 @@ export class CategoryController {
   async removeCategory(req: Request, res: Response) {
     try {
       const id = req.params.id;
-      const result = await categoryService.getOneCategory(id);
-
-      if (!result) {
-        return res.status(INTERNAL_SERVER_ERROR_STATUS).json({ message: "La categoria no fue encontrada" });
-      }
-
+      const result = req.body.currentCategory;
       await categoryService.removeCategory(id, result);
       res.status(OK_STATUS).json({ message: "Categoria eliminada exitosamente" });
     } catch (error) {

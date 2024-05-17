@@ -1,6 +1,6 @@
 import cloudinary from "cloudinary";
 import cors from "cors";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { createServer, Server as HttpServer } from "http";
 import fileUpload from "express-fileupload";
 import swaggerUi from "swagger-ui-express";
@@ -16,6 +16,8 @@ import userRoutes from "./modules/user/userRoutes";
 import categoryRoutes from "./modules/category/categoryRoutes";
 import topicRoutes from "./modules/topic/topicRoutes";
 import swaggerSpec from "./swaggerOptions";
+import { INTERNAL_SERVER_ERROR_STATUS } from "./shared/constants/statusHTTP";
+import logger from "./shared/config/logger";
 
 export class Server {
   private app: express.Application;
@@ -30,6 +32,8 @@ export class Server {
     this.middlewares();
     this.configureCloudinary();
     this.routes();
+    this.configureSwagger();
+    this.handleUncaughtExceptions();
   }
 
   async connectDataBase() {
@@ -70,9 +74,29 @@ export class Server {
     this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
 
+  private handleUncaughtExceptions() {
+    process.on("uncaughtException", (err) => {
+      console.error("Uncaught Exception:", err);
+      this.respondWithError(err);
+    });
+
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
+      this.respondWithError(reason instanceof Error ? reason : new Error(String(reason)));
+    });
+  }
+
+  private respondWithError(error: Error) {
+    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      res
+        .status(INTERNAL_SERVER_ERROR_STATUS)
+        .json({ error: "En este momento no podemos procesar tu solicitud, por favor intenta mas tarde" });
+    });
+  }
+
   public listen() {
     this.httpServer.listen(this.port, () => {
-      console.log(`Server is running at http://localhost:${this.port}`);
+      logger.info(`Server is running at http://localhost:${this.port}`);
     });
   }
 }

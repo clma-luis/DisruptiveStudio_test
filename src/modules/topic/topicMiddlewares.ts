@@ -120,12 +120,12 @@ export const validateCategoriesInTopic = async (req: Request, res: Response, nex
       return mongoose.Types.ObjectId.createFromHexString(id);
     });
 
-    const result = await validatePermissionsCategory(convertToObjectIds, req as Request);
+    const result = await validatePermissionsCategory(convertToObjectIds, req as Request, res as Response);
 
     if (result) {
       req.body.notExecuteUploadFile = true;
-      const categoryName = result.name;
-      res.status(BAD_REQUEST_STATUS).json({ message: `La categoría "${categoryName}" no existe` });
+
+      return res.status(BAD_REQUEST_STATUS).json({ message: "Todas las categorías deben ser validas" });
     }
 
     if (categoriesArray.length === 0) {
@@ -140,14 +140,18 @@ export const validateCategoriesInTopic = async (req: Request, res: Response, nex
   }
 };
 
-const validatePermissionsCategory = async (data: mongoose.Types.ObjectId[], req: Request) => {
+const validatePermissionsCategory = async (data: mongoose.Types.ObjectId[], req: Request, res: Response) => {
   const response = (await CategoryModel.find({ _id: { $in: data } })) as CategorySchema[];
+
+  let isNotEqual = false;
+
+  if (response.length !== data.length) {
+    isNotEqual = true;
+  }
 
   req.body.categoriesName = response.filter((item) => item.deleted === 0).map((item) => item.name);
 
-  const invalidCategory = response.find((category) => category.deleted === 1) as CategorySchema;
-
-  return invalidCategory;
+  return isNotEqual;
 };
 
 export const dataAdapter = (req: Request, res: Response, next: NextFunction) => {
