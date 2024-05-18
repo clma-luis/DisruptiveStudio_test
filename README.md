@@ -27,7 +27,7 @@ disruptivestudio_test/
 │   │   │   └── authRoutes.ts
 │   │   ├── role/
 │   │   │   └── roleRoutes.ts
-│   │   ├── seeds/
+│   │   ├── seeds/   ===================================== aqui en el seed puedes crear rapidamente roles y usuarios con su data necesaria para no crear uno por uno
 │   │   │   └── seedRoutes.ts
 │   │   ├── user/
 │   │   │   └── userRoutes.ts
