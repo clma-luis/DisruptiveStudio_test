@@ -1,0 +1,520 @@
+{
+	"info": {
+		"_postman_id": "e5aa7233-8415-47d8-a882-a1a82b4abe42",
+		"name": "disruptiveStudio",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13231670"
+	},
+	"item": [
+		{
+			"name": "seed",
+			"item": [
+				{
+					"name": "executeUsers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/seed/executeUsers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"seed",
+								"executeUsers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "executeRoles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/seed/executeRoles",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"seed",
+								"executeRoles"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"postman.setEnvironmentVariable(\"token_value\",  JSON.parse(responseBody).token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"juanperez@example.com\",\r\n    \"password\": \"password1!a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "getAllUsers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/user/getUsers?page=1&size=10&role=",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"user",
+								"getUsers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "role",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createUser",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userName\": \"PedroSuarez\",\r\n    \"email\": \"test@test.com\",\r\n    \"role\": \"CREADOR_ROLE\",\r\n    \"password\": \"Carlos123!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/user/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"user",
+								"create"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "category",
+			"item": [
+				{
+					"name": "createCategory",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"image\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/category/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"category",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "removeCategory",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/category/removeOne/66469434260e30f228f3117e",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"category",
+								"removeOne",
+								"66469434260e30f228f3117e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAllCategories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/category/getAll",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"category",
+								"getAll"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "topic",
+			"item": [
+				{
+					"name": "createTopic",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "cultura",
+									"type": "text"
+								},
+								{
+									"key": "categories",
+									"value": "6645000fdbfc08241d341f6b, 6644ff1461faf15fd979f0b4, 66469434260e30f228f3117e",
+									"type": "text"
+								},
+								{
+									"key": "videoYoutube",
+									"value": "https://www.youtube.com/watch?v=OYF7gvnILTE",
+									"type": "text"
+								},
+								{
+									"key": "pdf",
+									"type": "file",
+									"src": "/C:/Users/CARLOS/Downloads/_CV_ENGLISH_CLMA_.pdf"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/C:/Users/CARLOS/Downloads/pruebaImage.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/topic/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"topic",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateTopic",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "ciencias",
+									"type": "text"
+								},
+								{
+									"key": "categories",
+									"value": "6644ff1461faf15fd979f0b4, 66450002dbfc08241d341f66, 6645000fdbfc08241d341f6b",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "videoYoutube",
+									"value": "https://www.youtube.com/watch?v=OYF7gvnILTE",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "pdf",
+									"type": "file",
+									"src": "/C:/Users/CARLOS/Downloads/Prueba técnica Fullstack Node JS.docx (1) (1) (1).pdf"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/C:/Users/CARLOS/Downloads/pruebaImage.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/topic/updateOne/66467bfd3c9c8f3f0e28b262",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"topic",
+								"updateOne",
+								"66467bfd3c9c8f3f0e28b262"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateCategoriesInTopic",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"categories\": \"6645000fdbfc08241d341f6b, 6644ff1461faf15fd979f0b4, 66450002dbfc08241d341f66\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/topic/updateCategoriesInTopic/664675b8e5ae235bea544012",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"topic",
+								"updateCategoriesInTopic",
+								"664675b8e5ae235bea544012"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAllTopics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/topic/getAll?page=1&size=10&category=66469434260e30f228f3117e&term=cien",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"topic",
+								"getAll"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "category",
+									"value": "66469434260e30f228f3117e"
+								},
+								{
+									"key": "term",
+									"value": "cien"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getOneTopic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/topic/getOne/664685994b454fb431abc492",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"topic",
+								"getOne",
+								"664685994b454fb431abc492"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "removeOneTopic",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "{{token_name}}",
+								"value": "{{token_value}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/topic/removeOne/66467bfd3c9c8f3f0e28b262",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"topic",
+								"removeOne",
+								"66467bfd3c9c8f3f0e28b262"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "finTopicByCategoryId",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
